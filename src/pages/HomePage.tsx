@@ -24,7 +24,7 @@ const HomePage = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!isConnected) {
-      setMessage({ type: 'error', text: 'Notionに接続してください' })
+      setMessage({ type: 'error', text: 'Notionに接続できません。しばらく待ってから再試行してください。' })
       return
     }
 
@@ -55,26 +55,6 @@ const HomePage = () => {
     setIsSubmitting(false)
   }
 
-  if (!isConnected) {
-    return (
-      <div className="max-w-md mx-auto p-4 mt-8">
-        <div className="card text-center animate-fade-in">
-          <AlertCircle className="h-16 w-16 text-warning-500 mx-auto mb-4" />
-          <h2 className="text-xl font-bold text-gray-900 mb-2">Notion接続が必要です</h2>
-          <p className="text-gray-600 mb-6">
-            お金管理を始めるには、まず設定ページでNotionに接続してください。
-          </p>
-          <a
-            href="/admin"
-            className="btn-primary inline-block"
-          >
-            設定ページへ
-          </a>
-        </div>
-      </div>
-    )
-  }
-
   return (
     <div className="max-w-md mx-auto p-4 mt-4">
       <div className="card animate-fade-in">
@@ -82,6 +62,11 @@ const HomePage = () => {
           <PlusCircle className="h-12 w-12 text-primary-600 mx-auto mb-3" />
           <h2 className="text-2xl font-bold text-gray-900">支出を記録</h2>
           <p className="text-gray-600">金額、支払い方法、用途を入力してください</p>
+          {!isConnected && (
+            <div className="mt-2 p-2 bg-yellow-50 border border-yellow-200 rounded-lg">
+              <p className="text-sm text-yellow-700">Notionに接続中...</p>
+            </div>
+          )}
         </div>
 
         {message && (

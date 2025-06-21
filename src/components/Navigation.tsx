@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom'
-import { Home, Settings, History, Wallet } from 'lucide-react'
+import { Home, History, Wallet } from 'lucide-react'
 
 const Navigation = () => {
   const location = useLocation()
@@ -7,7 +7,6 @@ const Navigation = () => {
   const navItems = [
     { path: '/', icon: Home, label: 'ホーム' },
     { path: '/history', icon: History, label: '履歴' },
-    { path: '/admin', icon: Settings, label: '設定' },
   ]
 
   return (
