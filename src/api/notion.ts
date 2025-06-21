@@ -9,7 +9,7 @@ const notion = new Client({
 
 const DATABASE_ID = '21954fc183298038be67fccacb31e13a'
 
-export const testConnection = async () => {
+export const testConnection = async (): Promise<{ success: boolean; error?: any }> => {
   try {
     await notion.databases.retrieve({ database_id: DATABASE_ID })
     return { success: true }

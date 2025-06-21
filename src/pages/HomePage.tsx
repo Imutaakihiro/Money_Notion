@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { useNotion } from '../contexts/NotionContext'
-import { PlusCircle, AlertCircle, CheckCircle, CreditCard, Banknote, Smartphone } from 'lucide-react'
+import { PlusCircle, AlertCircle, CheckCircle, CreditCard, Banknote, Smartphone, RefreshCw } from 'lucide-react'
+import { testConnection } from '../api/notion'
 
 const HomePage = () => {
   const { isConnected, addExpense } = useNotion()
@@ -10,6 +11,7 @@ const HomePage = () => {
     purpose: ''
   })
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isTesting, setIsTesting] = useState(false)
   const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null)
 
   const paymentMethods = [
@@ -20,6 +22,24 @@ const HomePage = () => {
     { value: '楽天Pay', label: '楽天Pay', icon: Smartphone },
     { value: 'その他', label: 'その他', icon: Smartphone },
   ]
+
+  const handleTestConnection = async () => {
+    setIsTesting(true)
+    setMessage(null)
+    
+    try {
+      const result = await testConnection()
+      if (result.success) {
+        setMessage({ type: 'success', text: '✅ Notion APIに正常に接続できました！' })
+      } else {
+        setMessage({ type: 'error', text: `❌ 接続エラー: ${result.error?.message || '不明なエラー'}` })
+      }
+    } catch (error) {
+      setMessage({ type: 'error', text: `❌ 接続テスト失敗: ${error}` })
+    }
+    
+    setIsTesting(false)
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -62,11 +82,41 @@ const HomePage = () => {
           <PlusCircle className="h-12 w-12 text-primary-600 mx-auto mb-3" />
           <h2 className="text-2xl font-bold text-gray-900">支出を記録</h2>
           <p className="text-gray-600">金額、支払い方法、用途を入力してください</p>
-          {!isConnected && (
-            <div className="mt-2 p-2 bg-yellow-50 border border-yellow-200 rounded-lg">
-              <p className="text-sm text-yellow-700">Notionに接続中...</p>
+          
+          {/* 接続状態とテストボタン */}
+          <div className="mt-4 space-y-2">
+            <div className={`p-2 rounded-lg border ${
+              isConnected 
+                ? 'bg-green-50 border-green-200 text-green-700' 
+                : 'bg-yellow-50 border-yellow-200 text-yellow-700'
+            }`}>
+              <p className="text-sm">
+                {isConnected ? '✅ Notion接続済み' : '⏳ Notionに接続中...'}
+              </p>
             </div>
-          )}
+            
+            <button
+              onClick={handleTestConnection}
+              disabled={isTesting}
+              className={`px-4 py-2 text-sm rounded-lg border transition-colors ${
+                isTesting
+                  ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                  : 'bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100'
+              }`}
+            >
+              {isTesting ? (
+                <>
+                  <RefreshCw className="h-4 w-4 inline mr-2 animate-spin" />
+                  テスト中...
+                </>
+              ) : (
+                <>
+                  <RefreshCw className="h-4 w-4 inline mr-2" />
+                  API接続テスト
+                </>
+              )}
+            </button>
+          </div>
         </div>
 
         {message && (
@@ -80,7 +130,7 @@ const HomePage = () => {
             ) : (
               <AlertCircle className="h-5 w-5 flex-shrink-0" />
             )}
-            <span>{message.text}</span>
+            <span className="text-sm">{message.text}</span>
           </div>
         )}
 
