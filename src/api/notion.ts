@@ -9,80 +9,29 @@ const notion = new Client({
 
 const DATABASE_ID = '21954fc183298038be67fccacb31e13a'
 
-export const testConnection = async (): Promise<{ success: boolean; error?: any }> => {
+async function callApi(action: string, payload?: any) {
   try {
-    await notion.databases.retrieve({ database_id: DATABASE_ID })
-    return { success: true }
-  } catch (error) {
-    console.error('Notion connection error:', error)
-    return { success: false, error }
-  }
-}
-
-export const addExpense = async (expense: {
-  amount: number
-  paymentMethod: string
-  purpose: string
-  date: string
-}) => {
-  try {
-    const response = await notion.pages.create({
-      parent: { database_id: DATABASE_ID },
-      properties: {
-        '金額': {
-          number: expense.amount
-        },
-        '支払い方法': {
-          select: {
-            name: expense.paymentMethod
-          }
-        },
-        '用途': {
-          title: [
-            {
-              text: {
-                content: expense.purpose
-              }
-            }
-          ]
-        },
-        '日付': {
-          date: {
-            start: expense.date
-          }
-        }
-      }
-    })
-    return { success: true, data: response }
-  } catch (error) {
-    console.error('Error adding expense:', error)
-    return { success: false, error }
-  }
-}
-
-export const getExpenses = async () => {
-  try {
-    const response = await notion.databases.query({
-      database_id: DATABASE_ID,
-      sorts: [
-        {
-          property: '日付',
-          direction: 'descending'
-        }
-      ]
+    const response = await fetch('/api/notion', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ action, payload }),
     })
 
-    const expenses = response.results.map((page: any) => ({
-      id: page.id,
-      amount: page.properties['金額']?.number || 0,
-      paymentMethod: page.properties['支払い方法']?.select?.name || '',
-      purpose: page.properties['用途']?.title?.[0]?.text?.content || '',
-      date: page.properties['日付']?.date?.start || ''
-    }))
+    const data = await response.json()
 
-    return { success: true, expenses }
-  } catch (error) {
-    console.error('Error getting expenses:', error)
-    return { success: false, error, expenses: [] }
+    if (!response.ok) {
+      throw new Error(data.error?.message || `API Error: ${response.statusText}`)
+    }
+    
+    return data
+  } catch (error: any) {
+    console.error(`API call failed for action: ${action}`, error)
+    return { success: false, error: { message: error.message } }
   }
 }
+
+export const testConnection = () => callApi('testConnection')
+export const addExpense = (expense: any) => callApi('addExpense', expense)
+export const getExpenses = () => callApi('getExpenses')
